@@ -1,7 +1,8 @@
 import BigNumber from "bignumber.js";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Countdown from "react-countdown";
 import { useDispatch, useSelector } from "react-redux";
+import { usePoolContext } from "../../context/poolContext";
 import IDOPool from "../../contracts/IDOPool.json";
 import { fetchData } from "../../redux/data/dataActions";
 import * as s from "../../styles/global";
@@ -10,27 +11,12 @@ import { utils } from "../../utils";
 const WithdrawETH = (props) => {
   const blockchain = useSelector((state) => state.blockchain);
   const data = useSelector((state) => state.data);
-  const [idoInfo, setIdoInfo] = useState(null);
   const [price, setPrice] = useState("0");
   const [loading, setLoading] = useState(false);
   const { idoAddress } = props;
   const dispatch = useDispatch();
 
-  useEffect(async () => {
-    if (blockchain.account && blockchain.web3 && idoAddress !== "") {
-      try {
-        let result = await utils.loadPoolData(
-          idoAddress,
-          blockchain.web3,
-          blockchain.account
-        );
-
-        setIdoInfo(result);
-      } catch (e) {
-        console.log(e);
-      }
-    }
-  }, [idoAddress, blockchain.account, data.ETHamount]);
+  const idoInfo = usePoolContext().allPools[idoAddress];
 
   if (!blockchain.account || !idoInfo || !blockchain.web3) {
     return null;
@@ -87,12 +73,11 @@ const WithdrawETH = (props) => {
       <s.SpacerSmall />
       <s.Container fd="row" ai="center" jc="space-between">
         <s.Container flex={3}>
-          <s.TextID>Can withdraw after</s.TextID>
+          <s.TextID>Can withdraw in</s.TextID>
         </s.Container>
 
         <Countdown date={idoInfo.end * 1000} />
       </s.Container>
-      <s.TextID style={{ lineHeight: "0" }}>Or process {">"} 90%</s.TextID>
       <s.SpacerMedium />
       <s.Container fd="row" ai="center" jc="space-between">
         <s.Container flex={2}>
@@ -106,8 +91,7 @@ const WithdrawETH = (props) => {
         <s.button
           disabled={
             parseInt(Date.now() / 1000) < parseInt(idoInfo.end) ||
-            (parseInt(Date.now() / 1000) < parseInt(idoInfo.end) &&
-              idoInfo.progress > 90)
+            BigNumber(idoInfo.totalInvestedETH).lt(BigNumber(idoInfo.softCap))
           }
           onClick={(e) => {
             e.preventDefault();
@@ -116,6 +100,47 @@ const WithdrawETH = (props) => {
         >
           WITHDRAW
         </s.button>
+      </s.Container>
+      <s.Container fd="row" ai="center" jc="space-between">
+        <s.Container flex={2}>
+          <s.TextID>Unsold token</s.TextID>
+          <s.TextDescription>
+            {BigNumber(idoInfo.unsold)
+              .dividedBy(10 ** idoInfo.tokenDecimals)
+              .toFixed(2) +
+              " " +
+              idoInfo.tokenSymbol}
+          </s.TextDescription>
+        </s.Container>
+        {BigNumber(idoInfo.totalInvestedETH).lt(BigNumber(idoInfo.softCap)) ? (
+          <s.button
+            disabled={
+              parseInt(Date.now() / 1000) < parseInt(idoInfo.end) ||
+              BigNumber(idoInfo.totalInvestedETH).lt(BigNumber(idoInfo.softCap))
+            }
+            onClick={(e) => {
+              e.preventDefault();
+              withdrawToken();
+            }}
+          >
+            WITHDRAW ALL TOKEN
+          </s.button>
+        ) : (
+          <s.button
+            disabled={
+              parseInt(Date.now() / 1000) < parseInt(idoInfo.end) ||
+              BigNumber(idoInfo.totalInvestedETH).gte(
+                BigNumber(idoInfo.softCap)
+              )
+            }
+            onClick={(e) => {
+              e.preventDefault();
+              withdrawToken();
+            }}
+          >
+            WITHDRAW UNSOLD TOKEN
+          </s.button>
+        )}
       </s.Container>
     </s.Card>
   );

@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import BigNumber from "bignumber.js";
+import React from "react";
 import { Badge } from "react-bootstrap";
 import { useSelector } from "react-redux";
+import { usePoolContext } from "../../context/poolContext";
 import * as s from "../../styles/global";
 import { utils } from "../../utils";
 import { getRouterName } from "../../utils/utils";
@@ -8,19 +10,15 @@ import TokenInfo from "./tokenInfo";
 
 const PoolInfoRenderer = (props) => {
   const contract = useSelector((state) => state.contract);
-  const [idoInfo, setIdoInfo] = useState(null);
   const { idoAddress } = props;
+  const currency = " " + process.env.REACT_APP_CURRENCY;
 
-  useEffect(async () => {
-    if (contract.web3) {
-      const web3 = contract.web3;
+  const poolContext = usePoolContext();
 
-      let result = await utils.loadPoolData(idoAddress, web3, "");
-      setIdoInfo(result);
-    }
-  }, [idoAddress, contract.web3]);
+  let idoInfo = poolContext.allPools[idoAddress];
 
   if (!utils.isValidPool(idoInfo)) {
+    console.log(idoInfo);
     return null;
   }
 
@@ -32,11 +30,6 @@ const PoolInfoRenderer = (props) => {
 
   return (
     <s.Container flex={2} ai="center" style={{ margin: 10, minWidth: 400 }}>
-      <TokenInfo
-        tokenAddress={idoInfo.tokenAddress}
-        _metadata={idoInfo.metadata}
-      />
-      <s.SpacerMedium />
       <s.Card
         style={{
           flex: 3,
@@ -66,6 +59,37 @@ const PoolInfoRenderer = (props) => {
           {web3.utils.fromWei(idoInfo.listingRate) + " $" + idoInfo.tokenSymbol}
         </s.Container>
         <s.SpacerSmall />
+        <s.Container fd="row" jc="space-between" style={{ marginTop: 10 }}>
+          <s.Card ai="center" style={{ padding: 0 }}>
+            <s.TextID>Soft Cap</s.TextID>
+            <s.TextDescription>
+              {BigNumber(web3.utils.fromWei(idoInfo.softCap)).toFormat(2) +
+                currency}
+            </s.TextDescription>
+          </s.Card>
+          <s.Card ai="center" style={{ padding: 0 }}>
+            <s.TextID>Hard Cap</s.TextID>
+            <s.TextDescription>
+              {BigNumber(web3.utils.fromWei(idoInfo.hardCap)).toFormat(2) +
+                currency}
+            </s.TextDescription>
+          </s.Card>
+          <s.Card ai="center" style={{ padding: 0 }}>
+            <s.TextID>Minimum Buy</s.TextID>
+            <s.TextDescription>
+              {BigNumber(web3.utils.fromWei(idoInfo.min)).toFormat(2) +
+                currency}
+            </s.TextDescription>
+          </s.Card>
+          <s.Card ai="center" style={{ padding: 0 }}>
+            <s.TextID>Maximum Buy</s.TextID>
+            <s.TextDescription>
+              {BigNumber(web3.utils.fromWei(idoInfo.max)).toFormat(2) +
+                currency}
+            </s.TextDescription>
+          </s.Card>
+        </s.Container>
+        <s.SpacerSmall />
         <s.Container fd="row" jc="space-between">
           <s.TextID fw="700">Liquidity %</s.TextID>
           {idoInfo.lockInfo.lpPercentage + " %"}
@@ -87,11 +111,13 @@ const PoolInfoRenderer = (props) => {
         </s.Container>
         <s.SpacerSmall />
         <s.Container fd="row" jc="space-between">
-          <s.TextID fw="700">Can claim after</s.TextID>
+          <s.TextID fw="700">Lock LP until</s.TextID>
           {claimDate.toString()}
         </s.Container>
         <s.SpacerSmall />
       </s.Card>
+      <s.SpacerMedium />
+      <TokenInfo idoAddress={idoAddress} />
     </s.Container>
   );
 };

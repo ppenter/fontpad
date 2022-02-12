@@ -1,38 +1,25 @@
-import React, { useEffect, useState } from "react";
+import { ListItemAvatar } from "@mui/material";
+import BigNumber from "bignumber.js";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import { usePoolContext } from "../../context/poolContext";
 import * as s from "../../styles/global";
 import { utils } from "../../utils";
 import LongLocker from "../Card/longLocker";
 
 const LockerList = (props) => {
-  const [allPools, setAllPools] = useState([]);
   const [totalInvested, setTotalInvested] = useState(0);
   const [limit, setLimit] = useState(5);
   const [loading, setLoading] = useState(false);
   const blockchain = useSelector((state) => state.blockchain);
   const contract = useSelector((state) => state.contract);
 
-  const { filter = {} } = props;
+  const { tokenAddress, owner, showZero } = props;
 
-  useEffect(async () => {
-    if (!contract.LockerFactory) {
-      return null;
-    }
-    setLoading(true);
-    contract.LockerFactory.events.LockerCreated(
-      {
-        fromBlock: 0,
-        filter: filter,
-      },
-      async function (error, event) {
-        setAllPools((p) => [event.returnValues, ...p]);
-        await utils.timeout(3000);
-        setLoading(false);
-      }
-    );
-  }, [contract.web3, blockchain.account]);
+  const allPools = usePoolContext().allLocker;
+  const lockerKeys = Object.keys(allPools);
 
-  if (!contract.LockerFactory) {
+  if (!lockerKeys.length) {
     return null;
   }
 
@@ -47,21 +34,38 @@ const LockerList = (props) => {
           jc="space-around"
           style={{ flexWrap: "wrap", marginTop: 20 }}
         >
-          {allPools.map((item, index) => {
-            console.log(item);
-            if (index >= limit || !item) {
+          {lockerKeys.map((item, index) => {
+            if (index >= limit || !ListItemAvatar) {
               return null;
             }
+            if (!showZero) {
+              if (BigNumber(allPools[item].balance).lte(0)) {
+                return null;
+              }
+            }
+            if (owner && owner !== "") {
+              if (allPools[item].owner.toLowerCase() !== owner.toLowerCase()) {
+                return null;
+              }
+            }
+            if (tokenAddress && tokenAddress !== "") {
+              if (
+                allPools[item].token.tokenAddress.toLowerCase() !==
+                tokenAddress.toLowerCase()
+              ) {
+                return null;
+              }
+            }
             return (
-              <s.Container style={{ padding: 10 }}>
-                <LongLocker lockerAddress={item.lockerAddress} />
+              <s.Container key={index} style={{ padding: 10 }}>
+                <LongLocker lockerAddress={item} />
               </s.Container>
             );
           })}
         </s.Container>
       </s.Container>
       <s.SpacerSmall />
-      {limit >= allPools.length ? null : (
+      {limit >= lockerKeys.length ? null : (
         <s.button
           onClick={async (e) => {
             e.preventDefault();

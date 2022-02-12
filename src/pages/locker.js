@@ -1,4 +1,4 @@
-import { TextField } from "@mui/material";
+import { Checkbox, TextField } from "@mui/material";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import LockerList from "../components/Modal/lockerList";
@@ -8,34 +8,36 @@ import { utils } from "../utils";
 const Locker = (props) => {
   const [address, setAddress] = useState("");
   const contract = useSelector((state) => state.contract);
+  const [showZero, setShowZero] = useState(0);
 
   if (!contract.web3) {
     return null;
   }
 
-  let filter = { tokenAddress: address };
+  const handleShowZero = (e) => {
+    setShowZero(!showZero);
+  };
+
   return (
     <s.Container ai="center">
       <s.TextTitle>Locker</s.TextTitle>
       <s.SpacerMedium />
+      <s.Container fd="row">
+        <s.Container flex={7}></s.Container>
+        <s.Container flex={1} ai="center" fd="row" jc="center">
+          show zero?
+          <Checkbox value={showZero} onChange={handleShowZero} />
+        </s.Container>
+      </s.Container>
       <TextField
         fullWidth
         label={"Search by token address "}
         onChange={async (e) => {
           e.preventDefault();
-          await utils.typewatch(2000);
-          setAddress(e.target.value);
+          utils.typewatch(setAddress(e.target.value), 2000);
         }}
       />
-      <LockerList
-        filter={
-          address !== ""
-            ? contract.web3.utils.isAddress(address)
-              ? filter
-              : { tokenAddress: "0x0000000000000000000000000000000000000000" }
-            : {}
-        }
-      />
+      <LockerList showZero={showZero} tokenAddress={address} />
     </s.Container>
   );
 };

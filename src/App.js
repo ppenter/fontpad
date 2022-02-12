@@ -5,11 +5,13 @@ import { Outlet, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Footer from "./components/Footer/Footer";
 import Navigation from "./components/Navbar";
+import { usePoolContext } from "./context/poolContext";
 import Account from "./pages/account";
 import Home from "./pages/home.js";
 import Launchpad from "./pages/launchpad.js";
 import LaunchpadInFo from "./pages/launchpadInfo";
 import Locker from "./pages/locker";
+import LockerInfo from "./pages/lockerInfo";
 import LockToken from "./pages/lockToken";
 import Publish from "./pages/publish";
 import { fetchContract } from "./redux/contract/contractAction";
@@ -20,6 +22,7 @@ function App() {
   const blockchain = useSelector((state) => state.blockchain);
   const data = useSelector((state) => state.data);
   const contract = useSelector((state) => state.contract);
+  const allPools = usePoolContext().allPools;
 
   useEffect(() => {
     if (blockchain.account !== null) {
@@ -64,6 +67,7 @@ function App() {
             <Route path="/lock" element={<LockToken />} />
             <Route path="/account" element={<Account />} />
             <Route path="/locker" element={<Locker />} />
+            <Route path="/locker/:lockerAddress" element={<LockerInfo />} />
           </Routes>
           <s.SpacerLarge />
           <s.SpacerLarge />

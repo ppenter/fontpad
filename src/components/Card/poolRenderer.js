@@ -5,49 +5,39 @@ import Countdown from "react-countdown";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import * as s from "../../styles/global";
-import { utils } from "../../utils";
 import ProgressBar from "../Modal/ProgressBar";
 
 const PoolRenderer = (props) => {
   const contract = useSelector((state) => state.contract);
-  const [idoInfo, setIdoInfo] = useState(null);
   const [image, setImage] = useState("");
   const { idoAddress } = props;
+
+  const idoInfo = props.pool;
 
   let imageSolid = require("../../assets/images/image-solid.png");
 
   const card = useRef(null);
 
   useEffect(async () => {
-    if (contract.web3) {
-      const web3 = contract.web3;
+    setImage(idoInfo.metadata.image);
+  }, [idoInfo]);
 
-      let result = await utils.loadPoolData(idoAddress, web3, "");
-      setIdoInfo(result);
-      setImage(result.metadata.image);
-    }
-  }, [idoAddress]);
-
-  if (!utils.isValidPool(idoInfo)) {
-    return (
-      <s.Card
-        ref={card}
-        ai="center"
-        style={{ maxWidth: 500, margin: 20, minWidth: 400 }}
-      >
-        Loading
-      </s.Card>
-    );
-  }
+  // if (!utils.isValidPool(idoInfo) || !idoInfo) {
+  //   return (
+  //     <s.Card
+  //       ref={card}
+  //       ai="center"
+  //       style={{ maxWidth: 500, margin: 20, minWidth: 400 }}
+  //     >
+  //       Loading
+  //     </s.Card>
+  //   );
+  // }
 
   return (
-    <s.Card
-      ref={card}
-      ai="center"
-      style={{ maxWidth: 500, margin: 20, minWidth: 400 }}
-    >
+    <s.Card ref={card} style={{ maxWidth: 500, margin: 20, minWidth: 400 }}>
       <NavLink
-        to={"/launchpad/" + idoAddress}
+        to={"/launchpad/" + idoInfo.idoAddress}
         style={{
           textDecoration: "none",
           color: "white",
@@ -91,6 +81,25 @@ const PoolRenderer = (props) => {
           <s.BlurTextField></s.BlurTextField>
         </s.TextField>
         <s.SpacerSmall />
+        <s.Container fd="row">
+          <s.Container ai="center" flex={1}>
+            <s.TextID fullWidth>Soft cap</s.TextID>
+            {BigNumber(contract.web3.utils.fromWei(idoInfo.softCap)).toFormat(
+              2
+            ) +
+              " " +
+              process.env.REACT_APP_CURRENCY}
+          </s.Container>
+          <s.Container ai="center" flex={1}>
+            <s.TextID fullWidth>Hard cap</s.TextID>
+            {BigNumber(contract.web3.utils.fromWei(idoInfo.hardCap)).toFormat(
+              2
+            ) +
+              " " +
+              process.env.REACT_APP_CURRENCY}
+          </s.Container>
+        </s.Container>
+        <s.SpacerSmall />
         <s.TextID>
           {parseInt(idoInfo.start) < new Date(Date.now() / 1000)
             ? "End in"
@@ -105,11 +114,7 @@ const PoolRenderer = (props) => {
           }
         />
         <s.TextID>Progress</s.TextID>
-        <ProgressBar
-          now={BigNumber(idoInfo.currentDistributed)
-            .times(100)
-            .dividedBy(BigNumber(idoInfo.maxDistributed))}
-        />
+        <ProgressBar now={idoInfo.progress} />
       </NavLink>
     </s.Card>
   );

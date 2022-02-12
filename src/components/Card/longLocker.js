@@ -1,30 +1,23 @@
 import BigNumber from "bignumber.js";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import Countdown from "react-countdown";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
+import { usePoolContext } from "../../context/poolContext";
 import * as s from "../../styles/global";
-import { utils } from "../../utils";
 
 const LongLocker = (props) => {
   const contract = useSelector((state) => state.contract);
-  const [lockerInfo, setLockerInfo] = useState(null);
   const [image, setImage] = useState("");
   const { lockerAddress } = props;
+  const lockerInfo = usePoolContext().allLocker[lockerAddress];
 
-  useEffect(async () => {
-    if (contract.web3 && lockerAddress) {
-      const web3 = contract.web3;
-
-      let result = await utils.getLockerData(lockerAddress, web3);
-      setLockerInfo(result);
-    }
-  }, [lockerAddress]);
-
-  if (!lockerAddress || !lockerInfo) {
+  if (!lockerInfo) {
     return (
-      <s.Card ai="center" style={{ maxWidth: 500, margin: 20, minWidth: 400 }}>
-        Loading
-      </s.Card>
+      <s.Card
+        ai="center"
+        style={{ maxWidth: 500, margin: 20, minWidth: 400 }}
+      ></s.Card>
     );
   }
 
@@ -43,17 +36,28 @@ const LongLocker = (props) => {
         style={{ maxWidth: "100%" }}
         jc="space-between"
       >
-        {console.log(lockerInfo)}
-        <s.TextDescription>{lockerInfo.token.tokenName}</s.TextDescription>
-        <s.TextDescription>
-          {BigNumber(lockerInfo.balance)
-            .dividedBy(
-              BigNumber(10 ** parseInt(lockerInfo.token.tokenDecimals))
-            )
-            .toFixed(2) +
-            " $" +
-            lockerInfo.token.tokenSymbol}
-        </s.TextDescription>
+        <s.Container flex={1}>
+          <s.TextDescription>{lockerInfo.name}</s.TextDescription>
+          <s.TextID>{lockerInfo.token.tokenSymbol}</s.TextID>
+        </s.Container>
+        <s.Container flex={1} ai="flex-end">
+          <s.TextDescription>
+            {BigNumber(lockerInfo.balance)
+              .dividedBy(
+                BigNumber(10 ** parseInt(lockerInfo.token.tokenDecimals))
+              )
+              .toFixed(2) +
+              " $" +
+              lockerInfo.token.tokenSymbol}
+          </s.TextDescription>
+          {BigNumber(lockerInfo.time).lt(Date.now() / 1000) ? (
+            <s.TextID style={{ color: "var(--primary)" }}>UNLOCKED</s.TextID>
+          ) : (
+            <s.TextID>
+              <Countdown date={BigNumber(lockerInfo.time)}></Countdown>
+            </s.TextID>
+          )}
+        </s.Container>
       </s.Card>
     </NavLink>
   );

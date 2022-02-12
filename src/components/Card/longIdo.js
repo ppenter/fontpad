@@ -2,34 +2,32 @@ import BigNumber from "bignumber.js";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
+import { usePoolContext } from "../../context/poolContext";
 import * as s from "../../styles/global";
-import { utils } from "../../utils";
 import ProgressBar from "../Modal/ProgressBar";
 import PoolCountdown from "../Utils/poolCountdown";
 
 const LongIdo = (props) => {
   const contract = useSelector((state) => state.contract);
-  const [idoInfo, setIdoInfo] = useState(null);
   const [image, setImage] = useState("");
   const { idoAddress } = props;
+
+  const idoInfo = usePoolContext().allPools[idoAddress];
 
   let imageSolid = require("../../assets/images/image-solid.png");
 
   useEffect(async () => {
-    if (contract.web3) {
-      const web3 = contract.web3;
-
-      let result = await utils.loadPoolData(idoAddress, web3, "");
-      setIdoInfo(result);
-      setImage(result.metadata.image);
+    if (idoInfo) {
+      setImage(idoInfo.metadata.image);
     }
-  }, [idoAddress]);
+  }, [idoInfo]);
 
-  if (!utils.isValidPool(idoInfo)) {
+  if (!idoInfo) {
     return (
-      <s.Card ai="center" style={{ maxWidth: 500, margin: 20, minWidth: 400 }}>
-        Loading
-      </s.Card>
+      <s.Card
+        ai="center"
+        style={{ maxWidth: 500, margin: 20, minWidth: 400 }}
+      ></s.Card>
     );
   }
 

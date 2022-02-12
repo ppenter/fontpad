@@ -26,7 +26,7 @@ const Navigation = () => {
               color: "var(--primary)",
             }}
           >
-            KUBPAD
+            FONTPAD
           </s.Card>
         </s.TextTitle>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />

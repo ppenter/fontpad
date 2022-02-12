@@ -1,53 +1,36 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { usePoolContext } from "../../context/poolContext";
 import * as s from "../../styles/global";
 import { utils } from "../../utils";
 import PoolRenderer from "../Card/poolRenderer";
 
 const IDOList = (props) => {
   const [tallPools, settAllPools] = useState([]);
-  const [allPools, setAllPools] = useState([]);
   const [totalInvested, setTotalInvested] = useState(0);
   const [limit, setLimit] = useState(5);
   const [loading, setLoading] = useState(false);
   const blockchain = useSelector((state) => state.blockchain);
   const contract = useSelector((state) => state.contract);
+  const poolContext = usePoolContext();
 
-  const { filter = {} } = props;
+  const allPools = poolContext.allPools;
+  const poolKeys = Object.keys(allPools);
+
+  const { owner, tokenAddress } = props;
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      setLoading(false);
-      setAllPools(tallPools);
-    }, 3000);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [tallPools]);
-
-  useEffect(async () => {
-    settAllPools([]);
-    if (!contract.IDOFactory) {
-      return null;
-    }
-    setLoading(true);
-    contract.IDOFactory.events.IDOCreated(
-      {
-        fromBlock: 0,
-        filter: filter,
-      },
-      async function (error, event) {
-        settAllPools((p) => [event.returnValues, ...p]);
-      }
-    );
-  }, [contract.web3, blockchain.account, filter]);
+    console.log(allPools);
+  }, [allPools]);
 
   const loadmore = (amount) => {
     setLimit((p) => (p < allPools.length ? p + amount : p));
   };
 
-  if (!allPools.length) {
+  if (!poolKeys.length || !allPools) {
     return <s.TextDescription fullWidth>Loading</s.TextDescription>;
   }
+
   return (
     <s.Container ai="center">
       <s.Container ai="center">
@@ -56,28 +39,32 @@ const IDOList = (props) => {
           jc="space-around"
           style={{ flexWrap: "wrap", marginTop: 20 }}
         >
-          {allPools.map((item, index) => {
+          {poolKeys.map((item, index) => {
+            console.log(allPools[item]);
             if (index >= limit) {
               return null;
             }
+            if (owner && owner !== "") {
+              if (allPools[item].owner.toLowerCase() !== owner.toLowerCase()) {
+                return null;
+              }
+            }
+            if (tokenAddress && tokenAddress !== "") {
+              if (
+                allPools[item].tokenAddress.toLowerCase() !==
+                tokenAddress.toLowerCase()
+              ) {
+                return null;
+              }
+            }
             return (
-              <PoolRenderer
-                key={index}
-                idoAddress={item.idoPool}
-                tokenAddress={item.rewardToken}
-                distributed={item.maxDistributedTokenAmount}
-                start={item.startTimestamp}
-                end={item.finishTimestamp}
-                min={item.minEthPayment}
-                max={item.maxETHPayment}
-                claimDate={item.startClaimTimestamp}
-              ></PoolRenderer>
+              <PoolRenderer key={index} pool={allPools[item]}></PoolRenderer>
             );
           })}
         </s.Container>
       </s.Container>
       <s.SpacerSmall />
-      {limit >= allPools.length ? null : (
+      {limit >= poolKeys.length ? null : (
         <s.button
           onClick={async (e) => {
             e.preventDefault();

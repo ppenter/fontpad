@@ -1,14 +1,15 @@
-import React from "react";
+import { Checkbox } from "@mui/material";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import CreateLaunchpad from "../components/Button/createLaunchpad";
 import CreateLocker from "../components/Button/createLocker";
-import IDOList from "../components/Modal/idoList";
 import LockerList from "../components/Modal/lockerList";
-import * as s from "../styles/global";
 import LongIdoList from "../components/Modal/longIdoList";
+import * as s from "../styles/global";
 
 const Account = (props) => {
   const blockchain = useSelector((state) => state.blockchain);
+  const [showZero, setShowZero] = useState(0);
 
   if (!blockchain.account) {
     return (
@@ -18,6 +19,10 @@ const Account = (props) => {
       </s.Container>
     );
   }
+
+  const handleShowZero = (e) => {
+    setShowZero(!showZero);
+  };
 
   let filter = { owner: blockchain.account };
 
@@ -43,7 +48,14 @@ const Account = (props) => {
             </s.TextTitle>
             <CreateLocker />
           </s.Container>
-          <LockerList />
+          <s.Container fd="row" flex={1}>
+            <s.Container flex={4}></s.Container>
+            <s.Container flex={1} ai="center" fd="row" jc="center">
+              show zero?
+              <Checkbox value={showZero} onChange={handleShowZero} />
+            </s.Container>
+          </s.Container>
+          <LockerList showZero={showZero} filter={filter} />
         </s.Container>
       </s.Container>
     </s.Container>

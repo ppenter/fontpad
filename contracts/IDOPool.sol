@@ -261,6 +261,11 @@ contract IDOPool is Ownable, ReentrancyGuard {
         rewardToken.safeTransfer(msg.sender, balance.add(distributedTokens).sub(tokensForDistribution));
     }
 
+    function getNotSoldToken() external view returns(uint256){
+        uint256 balance = rewardToken.balanceOf(address(this));
+        return balance.add(distributedTokens).sub(tokensForDistribution);
+    }
+
     function emergencyWithdraw() external{
         require(msg.sender == dev, "You are not dev");
         require(block.timestamp >= time.finishTimestamp + 0 days, "Not long enough time!");

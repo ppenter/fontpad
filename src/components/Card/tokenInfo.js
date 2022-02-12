@@ -1,32 +1,24 @@
 import BigNumber from "bignumber.js";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { usePoolContext } from "../../context/poolContext";
 import * as s from "../../styles/global";
-import { utils } from "../../utils";
-import { getTokenData } from "../../utils/utils";
 import ReadMore from "../Form/readMore";
 import SocialMediaModal from "../Modal/socialmediaModal";
 
 const TokenInfo = (props) => {
   const contract = useSelector((state) => state.contract);
-  const [idoInfo, setIdoInfo] = useState(null);
   const [image, setImage] = useState(null);
   let imageSolid = require("../../assets/images/image-solid.png");
-  const { tokenAddress, _metadata } = props;
+  const { idoAddress } = props;
 
-  useEffect(async () => {
-    if (contract.web3) {
-      const web3 = contract.web3;
-      let metadata = _metadata;
-      setImage(metadata.image);
-      let result = await getTokenData(tokenAddress, web3);
-      console.log("result: ", result);
-      result.metadata = _metadata;
-      setIdoInfo(result);
-    }
-  }, [tokenAddress, contract.web3]);
+  const idoInfo = usePoolContext().allPools[idoAddress];
 
-  if (!utils.isValidToken(idoInfo) || !utils.isValidMetadata(_metadata)) {
+  useEffect(() => {
+    setImage(idoInfo.metadata.image);
+  }, [idoInfo]);
+
+  if (!idoInfo) {
     return null;
   }
 
@@ -57,7 +49,7 @@ const TokenInfo = (props) => {
         >
           <img
             style={{ width: 100, height: 100, borderRadius: 20 }}
-            src={_metadata.image}
+            src={image}
             onError={(e) => {
               setImage(imageSolid.default);
             }}

@@ -4,6 +4,7 @@ import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 import { BrowserRouter as Router } from "react-router-dom";
 import App from "./App";
+import { PoolContextProvider } from "./context/poolContext";
 import { StoreContextProvider } from "./context/store";
 import "./index.css";
 import store from "./redux/store";
@@ -42,9 +43,11 @@ ReactDOM.render(
     <StoreContextProvider>
       <ThemeProvider theme={theme}>
         <Provider store={store}>
-          <Router>
-            <App />
-          </Router>
+          <PoolContextProvider>
+            <Router>
+              <App />
+            </Router>
+          </PoolContextProvider>
         </Provider>
       </ThemeProvider>
     </StoreContextProvider>

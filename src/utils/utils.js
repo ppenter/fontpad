@@ -115,6 +115,7 @@ export const loadPoolData = async (idoAddress, web3, account) => {
     let tokenDecimals = await token.methods.decimals().call();
     let totalSupply = await token.methods.totalSupply().call();
     let capacity = await idoPool.methods.capacity().call();
+    let unsold = await idoPool.methods.getNotSoldToken().call();
     let time = await idoPool.methods.time().call();
     let uniswap = await idoPool.methods.uniswap().call();
     let lockInfo = await idoPool.methods.lockInfo().call();
@@ -134,9 +135,9 @@ export const loadPoolData = async (idoAddress, web3, account) => {
       .call();
 
     let progress = parseFloat(
-      BigNumber(capacity.hardCap)
+      BigNumber(totalInvestedETH)
         .times(100)
-        .dividedBy(BigNumber(totalInvestedETH))
+        .dividedBy(BigNumber(capacity.hardCap))
     );
 
     let result = {
@@ -149,6 +150,7 @@ export const loadPoolData = async (idoAddress, web3, account) => {
       idoAddress: idoAddress,
       owner: owner,
       balance: balance,
+      unsold: unsold,
       tokenRate: tokenRate,
       listingRate: listingRate,
       uniswap: uniswap,
@@ -160,6 +162,7 @@ export const loadPoolData = async (idoAddress, web3, account) => {
       max: max,
       softCap: softCap,
       hardCap: hardCap,
+      totalInvestedETH: totalInvestedETH,
       progress: progress,
       uri: uri,
       userData: userData,
@@ -188,6 +191,23 @@ export const getTokenData = async (tokenAddress, web3) => {
   };
 };
 
+export const loadUserData = async (idoAddress, web3, account) => {
+  try {
+    const idoPool = await new web3.eth.Contract(IDOPool.abi, idoAddress);
+
+    let userData = new Object();
+
+    if (account !== "") {
+      userData = await idoPool.methods.userInfo(account).call();
+    } else {
+      return null;
+    }
+    return userData;
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 export const getBalanceOfERC20 = async (tokenAddress, address, web3) => {
   const token = new web3.eth.Contract(ERC20.abi, tokenAddress);
 
@@ -197,15 +217,17 @@ export const getBalanceOfERC20 = async (tokenAddress, address, web3) => {
 
 export const getLockerData = async (lockerAddress, web3) => {
   const locker = new web3.eth.Contract(Locker.abi, lockerAddress);
-  console.log(locker);
-  let token = await locker.methods.tokenAddress().call();
+  let token = await locker.methods.token().call();
   let tokenData = await getTokenData(token, web3);
+  let name = await locker.methods.name().call();
   let withdrawer = await locker.methods.withdrawer().call();
   let balance = await getBalanceOfERC20(token, lockerAddress, web3);
   let time = await locker.methods.withdrawTime().call();
   let owner = await locker.methods.owner().call();
   return {
+    lockerAddress: lockerAddress,
     token: tokenData,
+    name: name,
     withdrawer: withdrawer,
     time: time,
     owner: owner,

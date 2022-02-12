@@ -35,11 +35,7 @@ contract TokenLocker is Ownable {
         require(amount >= token.balanceOf(address(this)), "Withdraw amount is exceed balance");
         require(msg.sender == withdrawer, "You are not withdrawer");
         require(block.timestamp > withdrawTime, "Not time yet");
-        token.safeTransferFrom(
-                address(this),
-                msg.sender,
-                amount
-            );
+        token.transfer(msg.sender, amount);
             emit withdrawTokenEvent(block.timestamp, amount);
     }
 
@@ -47,11 +43,7 @@ contract TokenLocker is Ownable {
         require(msg.sender == withdrawer, "You are not withdrawer");
         require(block.timestamp > withdrawTime, "Not time yet");
         uint256 amount = token.balanceOf(address(this));
-        token.safeTransferFrom(
-                address(this),
-                msg.sender,
-                amount
-            );
+        token.transfer(msg.sender, amount);
         emit withdrawTokenEvent(block.timestamp, amount);
     }
 

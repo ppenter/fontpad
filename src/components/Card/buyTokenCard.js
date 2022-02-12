@@ -3,6 +3,7 @@ import BigNumber from "bignumber.js";
 import React, { useEffect, useState } from "react";
 import { Badge } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
+import { usePoolContext } from "../../context/poolContext";
 import IDOPool from "../../contracts/IDOPool.json";
 import { fetchData } from "../../redux/data/dataActions";
 import * as s from "../../styles/global";
@@ -13,24 +14,22 @@ import PoolCountdown from "../Utils/poolCountdown";
 const BuyTokenCard = (props) => {
   const blockchain = useSelector((state) => state.blockchain);
   const data = useSelector((state) => state.data);
-  const [idoInfo, setIdoInfo] = useState(null);
   const [price, setPrice] = useState("0");
   const [loading, setLoading] = useState(false);
   const { idoAddress } = props;
   const dispatch = useDispatch();
+  const currency = " " + process.env.REACT_APP_CURRENCY;
+  const idoInfo = usePoolContext().allPools[idoAddress];
+  const [userData, setUserData] = useState(null);
 
   useEffect(async () => {
     if (blockchain.account && blockchain.web3 && idoAddress !== "") {
       try {
-        const web3 = blockchain.web3;
-
-        let result = await utils.loadPoolData(
-          idoAddress,
-          web3,
-          blockchain.account
-        );
-        console.log(result);
-        setIdoInfo(result);
+        await utils
+          .loadUserData(idoAddress, blockchain.web3, blockchain.account)
+          .then((e) => {
+            setUserData(e);
+          });
       } catch (e) {
         console.log(e);
       }
@@ -40,10 +39,13 @@ const BuyTokenCard = (props) => {
   if (!blockchain.account) {
     return null;
   }
-  // if (!utils.isValidPool(idoInfo)) {
-  //   return null;
-  // }
+  if (!utils.isValidPool(idoInfo)) {
+    return null;
+  }
   if (!idoInfo) {
+    return <s.TextDescription fullWidth>Loading</s.TextDescription>;
+  }
+  if (!userData) {
     return <s.TextDescription fullWidth>Loading</s.TextDescription>;
   }
   const web3 = blockchain.web3;
@@ -105,6 +107,34 @@ const BuyTokenCard = (props) => {
     }
   };
 
+  const refund = async () => {
+    setLoading(true);
+    const web3 = blockchain.web3;
+    try {
+      const IDOPoolContract = await new web3.eth.Contract(
+        IDOPool.abi,
+        idoAddress
+      );
+
+      IDOPoolContract.methods
+        .claimETH()
+        .send({
+          from: blockchain.account,
+        })
+        .once("error", (err) => {
+          setLoading(false);
+          console.log(err);
+        })
+        .then((receipt) => {
+          setLoading(false);
+          console.log(receipt);
+          dispatch(fetchData(blockchain.account));
+        });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <s.Card
       style={{
@@ -125,32 +155,23 @@ const BuyTokenCard = (props) => {
       <PoolCountdown start={idoInfo.start} end={idoInfo.end} />
       <s.Container fd="row" jc="space-between" style={{ marginTop: 10 }}>
         <s.Card style={{ padding: 0 }}>
-          <s.TextID>{"Minimum " + process.env.REACT_APP_CURRENCY}</s.TextID>
+          <s.TextID>{"Minimum" + currency}</s.TextID>
           <s.TextDescription>
             {BigNumber(web3.utils.fromWei(idoInfo.min)).toFormat(2)}
           </s.TextDescription>
         </s.Card>
         <s.Card style={{ padding: 0 }}>
-          <s.TextID>Maximum {process.env.REACT_APP_CURRENCY}</s.TextID>
+          <s.TextID>Maximum{currency}</s.TextID>
           <s.TextDescription>
             {BigNumber(web3.utils.fromWei(idoInfo.max)).toFormat(2)}
           </s.TextDescription>
-        </s.Card>
-        <s.Card style={{ padding: 0 }}>
-          <s.TextID>My invested {process.env.REACT_APP_CURRENCY}</s.TextID>
-          <s.TextDescription>
-            {BigNumber(
-              web3.utils.fromWei(idoInfo.userData.totalInvestedETH)
-            ).toFormat(2)}
-          </s.TextDescription>
-          <s.SpacerSmall />
         </s.Card>
       </s.Container>
       <s.Container fd="row" jc="space-between" ai="center">
         <s.Container flex={4}>
           <s.TextID>To claim</s.TextID>
           <s.TextDescription>
-            {BigNumber(idoInfo.userData.debt)
+            {BigNumber(userData.debt)
               .dividedBy(10 ** idoInfo.tokenDecimals)
               .toFixed(2) +
               " $" +
@@ -159,7 +180,10 @@ const BuyTokenCard = (props) => {
         </s.Container>
         <s.Container flex={1}>
           <s.button
-            disabled={Date.now() / 1000 < BigNumber(idoInfo.claim)}
+            disabled={
+              Date.now() / 1000 < BigNumber(idoInfo.claim) ||
+              BigNumber(userData.debt).lte(0)
+            }
             onClick={(e) => {
               e.preventDefault();
               claimToken();
@@ -169,15 +193,42 @@ const BuyTokenCard = (props) => {
           </s.button>
         </s.Container>
       </s.Container>
+      <s.Container fd="row" jc="space-between" ai="center">
+        <s.Container flex={4}>
+          <s.TextID>My invested {process.env.REACT_APP_CURRENCY}</s.TextID>
+          <s.TextDescription>
+            {BigNumber(web3.utils.fromWei(userData.totalInvestedETH)).toFormat(
+              2
+            ) + currency}
+          </s.TextDescription>
+        </s.Container>
+        <s.Container flex={1}>
+          <s.button
+            disabled={
+              BigNumber(Date.now() / 1000).lt(BigNumber(idoInfo.end)) ||
+              BigNumber(idoInfo.totalInvestedETH).gt(
+                BigNumber(idoInfo.softCap)
+              ) ||
+              BigNumber(userData.totalInvestedETH).lte(0)
+            }
+            onClick={(e) => {
+              e.preventDefault();
+              refund();
+            }}
+          >
+            REFUND
+          </s.button>
+        </s.Container>
+      </s.Container>
       <s.TextID>Progress</s.TextID>
       <s.SpacerSmall />
-      <ProgressBar now={BigNumber(idoInfo.progress)} />
+      <ProgressBar now={parseInt(idoInfo.progress)} />
       <s.SpacerMedium />
       <s.Container fd="row" ai="center" jc="space-between">
         <s.Container flex={4} style={{ marginRight: 20 }}>
           <TextField
             fullWidth
-            label={"Buy with " + process.env.REACT_APP_CURRENCY}
+            label={"Buy with" + currency}
             type={"tel"}
             onChange={(e) => {
               e.preventDefault();
@@ -195,11 +246,11 @@ const BuyTokenCard = (props) => {
             disabled={
               BigNumber(price).gt(
                 BigNumber(idoInfo.max).minus(
-                  BigNumber(idoInfo.userData.totalInvestedETH)
+                  BigNumber(userData.totalInvestedETH)
                 )
               ) ||
               BigNumber(idoInfo.max).lte(
-                BigNumber(idoInfo.userData.totalInvestedETH)
+                BigNumber(userData.totalInvestedETH)
               ) ||
               BigNumber(price).lt(BigNumber(idoInfo.min)) ||
               BigNumber(price)

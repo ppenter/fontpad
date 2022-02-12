@@ -23,6 +23,7 @@ const styles = {
 
 const LockTokenForm = (props) => {
   const [address, setAddress] = useState("");
+  const [name, setName] = useState("");
   const [tokenApprove, setTokenApprove] = useState("");
   const [tokenName, setTokenName] = useState("");
   const [fee, setFee] = useState("0");
@@ -160,7 +161,7 @@ const LockTokenForm = (props) => {
   const createLocker = async () => {
     setLoading(true);
     blockchain.LockerFactory.methods
-      .createLocker(address, tokenDistributed, withdrawer, withdrawTime)
+      .createLocker(address, name, tokenDistributed, withdrawer, withdrawTime)
       .send({
         from: blockchain.account,
         value: fee,
@@ -211,6 +212,18 @@ const LockTokenForm = (props) => {
           ""
         )}
       </s.TextDescription>
+      <TextField
+        fullWidth
+        id="name"
+        label={"Locker name"}
+        onChange={(e) => {
+          e.preventDefault();
+          if (getDecimals(e.target.value)) {
+            setName(e.target.value);
+          }
+        }}
+      ></TextField>
+      <s.SpacerSmall />
       <TextField
         fullWidth
         id="address"
@@ -289,11 +302,19 @@ const LockTokenForm = (props) => {
           </s.button>
         ) : (
           <s.button
-            disabled={!address || address == "" || tokenDistributed <= 0}
+            disabled={
+              !address ||
+              address == "" ||
+              tokenDistributed <= 0 ||
+              decimals <= 0
+            }
             style={{ marginTop: 20 }}
             onClick={(e) => {
               e.preventDefault();
-              approveToken(address, tokenDistributed);
+              approveToken(
+                address,
+                BigNumber(tokenDistributed).times(10 ** decimals)
+              );
             }}
           >
             {loading ? ". . ." : "APPROVE TOKEN"}

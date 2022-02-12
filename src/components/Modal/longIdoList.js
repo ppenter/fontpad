@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import { usePoolContext } from "../../context/poolContext";
 import * as s from "../../styles/global";
 import { utils } from "../../utils";
 import LongIdo from "../Card/longIdo";
 
 const LongIdoList = (props) => {
-  const [allPools, setAllPools] = useState([]);
   const [totalInvested, setTotalInvested] = useState(0);
   const [limit, setLimit] = useState(5);
   const [loading, setLoading] = useState(false);
@@ -13,24 +13,7 @@ const LongIdoList = (props) => {
   const contract = useSelector((state) => state.contract);
 
   const { filter = {} } = props;
-
-  useEffect(async () => {
-    if (!contract.IDOFactory) {
-      return null;
-    }
-    setLoading(true);
-    contract.IDOFactory.events.IDOCreated(
-      {
-        fromBlock: 0,
-        filter: filter,
-      },
-      async function (error, event) {
-        setAllPools((p) => [event.returnValues, ...p]);
-        await utils.timeout(3000);
-        setLoading(false);
-      }
-    );
-  }, [contract.web3, blockchain.account]);
+  const allPools = usePoolContext().allPoolAddress;
 
   const loadmore = (amount) => {
     setLimit((p) => (p < allPools.length ? p + amount : p));
@@ -49,7 +32,7 @@ const LongIdoList = (props) => {
             }
             return (
               <s.Container style={{ padding: 10 }}>
-                <LongIdo idoAddress={item.idoPool} />
+                <LongIdo idoAddress={item} />
               </s.Container>
             );
           })}
