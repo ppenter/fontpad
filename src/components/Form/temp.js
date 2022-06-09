@@ -19,7 +19,7 @@ import { utils } from "../../utils";
 
 const chainRouter = {
   56: {
-    0: {
+    Pancakeswap: {
       name: "pancakeswap",
       info: {
         FACTORY: "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",

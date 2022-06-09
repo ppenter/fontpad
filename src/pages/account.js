@@ -50,8 +50,8 @@ const Account = (props) => {
           </s.Container>
           <s.Container fd="row" flex={1}>
             <s.Container flex={4}></s.Container>
-            <s.Container flex={1} ai="center" fd="row" jc="center">
-              show zero?
+            <s.Container flex={2} ai="center" fd="row" jc="center">
+              <s.TextDescription>show zero?</s.TextDescription>
               <Checkbox value={showZero} onChange={handleShowZero} />
             </s.Container>
           </s.Container>

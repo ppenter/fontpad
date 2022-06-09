@@ -48,7 +48,9 @@ export const PoolContextProvider = ({ children }) => {
         fromBlock: 0,
       },
       async function (error, event) {
-        setAllPoolAddress((p) => [...p, event.returnValues.idoPool]);
+        if (event) {
+          setAllPoolAddress((p) => [...p, event.returnValues.idoPool]);
+        }
       }
     );
   }, [dispatch, contract]);
@@ -65,7 +67,9 @@ export const PoolContextProvider = ({ children }) => {
         fromBlock: 0,
       },
       async function (error, event) {
-        setAllLockerAddress((p) => [...p, event.returnValues.lockerAddress]);
+        if (event) {
+          setAllLockerAddress((p) => [...p, event.returnValues.lockerAddress]);
+        }
       }
     );
   }, [dispatch, contract]);

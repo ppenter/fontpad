@@ -284,7 +284,7 @@ contract IDOPool is Ownable, ReentrancyGuard {
     }
 
     modifier notReachSoftCap(){
-        require(totalInvestedETH < capacity.softCap, "not reach soft cap");
+        require(totalInvestedETH < capacity.softCap, "Reach soft cap");
         _;
     }
 

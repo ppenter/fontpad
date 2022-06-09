@@ -6,21 +6,21 @@ import * as s from "../../styles/global";
 import { utils } from "../../utils";
 import LongLocker from "../Card/longLocker";
 
-const LockerList = (props) => {
+const TokenList = (props) => {
   const [limit, setLimit] = useState(5);
   const [loading, setLoading] = useState(false);
 
   const { tokenAddress, owner, showZero } = props;
 
-  const allPools = usePoolContext().allLocker;
-  const lockerKeys = Object.keys(allPools);
+  const allTokens = usePoolContext().allLocker;
+  const tokenKeys = Object.keys(allTokens);
 
-  if (!lockerKeys.length) {
+  if (!tokenKeys.length) {
     return null;
   }
 
   const loadmore = (amount) => {
-    setLimit((p) => (p < allPools.length ? p + amount : p));
+    setLimit((p) => (p < allTokens.length ? p + amount : p));
   };
 
   return (
@@ -30,23 +30,23 @@ const LockerList = (props) => {
           jc="space-around"
           style={{ flexWrap: "wrap", marginTop: 20 }}
         >
-          {lockerKeys.map((item, index) => {
+          {tokenKeys.map((item, index) => {
             if (index >= limit || !ListItemAvatar) {
               return null;
             }
             if (!showZero) {
-              if (BigNumber(allPools[item].balance).lte(0)) {
+              if (BigNumber(allTokens[item].balance).lte(0)) {
                 return null;
               }
             }
             if (owner && owner !== "") {
-              if (allPools[item].owner.toLowerCase() !== owner.toLowerCase()) {
+              if (allTokens[item].owner.toLowerCase() !== owner.toLowerCase()) {
                 return null;
               }
             }
             if (tokenAddress && tokenAddress !== "") {
               if (
-                allPools[item].token.tokenAddress.toLowerCase() !==
+                allTokens[item].token.tokenAddress.toLowerCase() !==
                 tokenAddress.toLowerCase()
               ) {
                 return null;
@@ -61,7 +61,7 @@ const LockerList = (props) => {
         </s.Container>
       </s.Container>
       <s.SpacerSmall />
-      {limit >= lockerKeys.length ? null : (
+      {limit >= tokenKeys.length ? null : (
         <s.button
           onClick={async (e) => {
             e.preventDefault();
@@ -78,4 +78,4 @@ const LockerList = (props) => {
   );
 };
 
-export default LockerList;
+export default TokenList;
