@@ -41,6 +41,7 @@ const PoolRenderer = (props) => {
         style={{
           textDecoration: "none",
           color: "white",
+          width: "100%",
         }}
       >
         <s.UpperCard fd="row" jc="space-between" ai="center">

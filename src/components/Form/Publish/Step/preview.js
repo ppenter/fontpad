@@ -84,6 +84,7 @@ export default function Preview() {
   };
 
   const createIDO = async () => {
+    console.log(chainRouter[process.env.REACT_APP_networkID][0]);
     setLoading(true);
     const iconAdded = await ipfs.add(icon);
     let iconURL = `https://ipfs.infura.io/ipfs/${iconAdded.path}`;
@@ -108,7 +109,7 @@ export default function Preview() {
       .createIDO(
         context.address[0],
         blockchain.web3.utils.toWei(context.tokenRate[0]),
-        blockchain.web3.utils.toWei(context.listingRate[0]),
+        blockchain.web3.utils.toWei("0"),
         [
           blockchain.web3.utils.toWei(context.softCap[0]),
           blockchain.web3.utils.toWei(context.hardCap[0]),
@@ -121,16 +122,11 @@ export default function Preview() {
           context.unlock[0].getTime() / 1000,
         ],
         [
-          chainRouter[process.env.REACT_APP_networkID][context.router[0]]
-            .ROUTER,
-          chainRouter[process.env.REACT_APP_networkID][context.router[0]]
-            .FACTORY,
-          chainRouter[process.env.REACT_APP_networkID][context.router[0]].WETH,
+          chainRouter[process.env.REACT_APP_networkID][0].ROUTER,
+          chainRouter[process.env.REACT_APP_networkID][0].FACTORY,
+          chainRouter[process.env.REACT_APP_networkID][0].WETH,
         ],
-        [
-          parseInt(context.liquidityPercentage[0]),
-          blockchain.LockerFactory._address,
-        ],
+        [parseInt("60"), blockchain.LockerFactory._address],
         tokenURI
       )
       .send({
