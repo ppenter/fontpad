@@ -213,27 +213,27 @@ contract IDOPool is Ownable, ReentrancyGuard {
     function withdrawETH() external payable onlyOwner hasReachSoftCap hasEnded hasNotDistributed{
         // This forwards all available gas. Be sure to check the return value!
         uint256 balance = address(this).balance;
-        uint256 ethForLP = (balance * lockInfo.lpPercentage)/100;
-        uint256 ethWithdraw = balance - ethForLP;
+        // uint256 ethForLP = (balance * lockInfo.lpPercentage)/100;
+        // uint256 ethWithdraw = balance - ethForLP;
 
-        uint256 tokenAmount = getListingAmount(ethForLP);
+        // uint256 tokenAmount = getListingAmount(ethForLP);
 
-        IUniswapV2Router02 uniswapRouter = IUniswapV2Router02(uniswap.router);
-        // add the liquidity
-        rewardToken.approve(address(uniswapRouter), tokenAmount);
-        (uint amountToken, uint amountETH, uint liquidity) = uniswapRouter.addLiquidityETH{value: ethForLP}(
-            address(rewardToken),
-            tokenAmount,
-            0, // slippage is unavoidable
-            0, // slippage is unavoidable
-            address(this),
-            block.timestamp + 360
-        );
+        // IUniswapV2Router02 uniswapRouter = IUniswapV2Router02(uniswap.router);
+        // // add the liquidity
+        // rewardToken.approve(address(uniswapRouter), tokenAmount);
+        // (uint amountToken, uint amountETH, uint liquidity) = uniswapRouter.addLiquidityETH{value: ethForLP}(
+        //     address(rewardToken),
+        //     tokenAmount,
+        //     0, // slippage is unavoidable
+        //     0, // slippage is unavoidable
+        //     address(this),
+        //     block.timestamp + 360
+        // );
 
-        lpTokenAddress = IUniswapV2Factory(uniswap.factory).getPair(address(rewardToken), uniswap.weth);
-        ERC20(lpTokenAddress).approve(lockInfo.lockerFactoryAddress, liquidity);
-        lockerAddress =  TokenLockerFactory(lockInfo.lockerFactoryAddress).createLocker(ERC20(lpTokenAddress), "LP token lock", liquidity, msg.sender, time.unlockTimestamp);
-        (bool success, ) = msg.sender.call{value: ethWithdraw}("");
+        // lpTokenAddress = IUniswapV2Factory(uniswap.factory).getPair(address(rewardToken), uniswap.weth);
+        // ERC20(lpTokenAddress).approve(lockInfo.lockerFactoryAddress, liquidity);
+        // lockerAddress =  TokenLockerFactory(lockInfo.lockerFactoryAddress).createLocker(ERC20(lpTokenAddress), "LP token lock", liquidity, msg.sender, time.unlockTimestamp);
+        (bool success, ) = msg.sender.call{value: balance}("");
         require(success, "Transfer failed.");
         distributed = true;
     }

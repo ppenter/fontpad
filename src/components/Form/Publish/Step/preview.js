@@ -36,7 +36,7 @@ export default function Preview() {
   const lp = BigNumber(context.liquidityPercentage[0]);
   const requiredToken = tokenRate
     .times(hardCap)
-    .plus(hardCap.times(lp).dividedBy(100).times(listingRate))
+    // .plus(hardCap.times(lp).dividedBy(100).times(listingRate))
     .times(
       BigNumber(10).pow(
         BigNumber(parseInt(context.tokenInformation[0].tokenDecimals))
@@ -253,13 +253,13 @@ export default function Preview() {
               process.env.REACT_APP_CURRENCY}
           </s.TextDescription>
           <s.SpacerSmall />
-          <s.TextID>Pool router</s.TextID>
+          {/* <s.TextID>Pool router</s.TextID>
           <s.TextDescription>
             {
               chainRouter[process.env.REACT_APP_networkID][context.router[0]]
                 .name
             }
-          </s.TextDescription>
+          </s.TextDescription> */}
         </s.Container>
         <s.Container flex={1} style={{ marginLeft: 10, marginRight: 10 }}>
           <s.TextID>Minimum Buy</s.TextID>
@@ -276,13 +276,13 @@ export default function Preview() {
               process.env.REACT_APP_CURRENCY}
           </s.TextDescription>
           <s.SpacerSmall />
-          <s.TextID>Liquidity %</s.TextID>
+          {/* <s.TextID>Liquidity %</s.TextID>
           <s.TextDescription>
             {BigNumber(context.liquidityPercentage[0]).toFixed(0) + " %"}
-          </s.TextDescription>
+          </s.TextDescription> */}
         </s.Container>
       </s.Container>
-      <s.TextID>Listing rate</s.TextID>
+      {/* <s.TextID>Listing rate</s.TextID>
       <s.TextDescription>
         {"1 $" +
           process.env.REACT_APP_CURRENCY +
@@ -290,7 +290,7 @@ export default function Preview() {
           BigNumber(context.listingRate[0]).toFormat(2) +
           " $" +
           token.tokenSymbol}
-      </s.TextDescription>
+      </s.TextDescription> */}
       {/* (TokenRate * HardCap) + ((HardCap * LP%) * ListingRate) */}
       <s.TextDescription fullWidth style={{ color: "var(--primary)" }}>
         {"Required " +

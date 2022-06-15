@@ -7,6 +7,7 @@ import React from "react";
 import { useStoreContext } from "../../../../context/store";
 import * as s from "../../../../styles/global";
 import { chainRouter } from "../../../../utils/chainInfo";
+import { timeout } from "../../../../utils/utils";
 import { NumberField } from "../../../FormField";
 export default function IDOInfo() {
   const context = useStoreContext();
@@ -20,13 +21,13 @@ export default function IDOInfo() {
       <NumberField
         value={BigNumber(context.tokenRate[0]).toFixed()}
         label={"Token rate"}
-        onChange={(e) => {
+        onChange={async (e) => {
           e.preventDefault();
           let val = BigNumber(e.target.value).absoluteValue().toFixed(18);
           if (!isNaN(val)) {
-            context.tokenRate[1](val);
+            await timeout(100).then(context.tokenRate[1](val));
           } else {
-            context.tokenRate[1]("");
+            await context.tokenRate[1](val);
           }
         }}
       />
@@ -64,7 +65,7 @@ export default function IDOInfo() {
           />
           <s.TextIDWarning>{context.idoError["hardCap"]}</s.TextIDWarning>
           <s.SpacerSmall />
-          <TextField
+          {/* <TextField
             value={context.router[0]}
             onChange={(e) => {
               e.preventDefault();
@@ -79,7 +80,7 @@ export default function IDOInfo() {
               return <MenuItem value={index}>{item.name}</MenuItem>;
             })}
           </TextField>
-          <s.TextIDWarning>{context.idoError["router"]}</s.TextIDWarning>
+          <s.TextIDWarning>{context.idoError["router"]}</s.TextIDWarning> */}
         </s.Container>
         <s.Container flex={1} style={{ marginLeft: 10, marginRight: 10 }}>
           <NumberField
@@ -112,7 +113,7 @@ export default function IDOInfo() {
           />
           <s.TextIDWarning>{context.idoError["maxETH"]}</s.TextIDWarning>
           <s.SpacerSmall />
-          <NumberField
+          {/* <NumberField
             value={BigNumber(context.liquidityPercentage[0]).toFixed()}
             label={"Liquidity % (51% - 100%)"}
             onChange={(e) => {
@@ -127,11 +128,11 @@ export default function IDOInfo() {
           />
           <s.TextIDWarning>
             {context.idoError["liquidityPercentage"]}
-          </s.TextIDWarning>
+          </s.TextIDWarning> */}
         </s.Container>
       </s.Container>
       <s.SpacerSmall />
-      <s.TextID>
+      {/* <s.TextID>
         If I pay 1 {process.env.REACT_APP_CURRENCY} how much token I will get
         after presale?
       </s.TextID>
@@ -149,7 +150,7 @@ export default function IDOInfo() {
         }}
       />
       <s.TextIDWarning>{context.idoError["listingRate"]}</s.TextIDWarning>
-      <s.SpacerMedium />
+      <s.SpacerMedium /> */}
       <s.Container fd={"row"} jc="space-between">
         <s.Container flex={1} style={{ marginLeft: 10, marginRight: 10 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
