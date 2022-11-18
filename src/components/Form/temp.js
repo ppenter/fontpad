@@ -38,6 +38,16 @@ const chainRouter = {
       },
     },
   },
+  1337: {
+    0: {
+      name: "uniswap",
+      info: {
+        FACTORY: "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+        WETH: "0xc778417e063141139fce010982780140aa0cd5ab",
+        ROUTER: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+      },
+    },
+  },
 };
 
 const styles = {

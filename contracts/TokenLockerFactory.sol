@@ -10,10 +10,12 @@ import "./TokenLocker.sol";
 contract TokenLockerFactory is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for ERC20;
-    
+
     uint256 public lockerCount = 0;
     uint256 public fee = 1 ether;
-    
+
+    address payable public feeCollector;
+
     struct lockerInfo {
         uint256 lockerId;
         address tokenAddress;
@@ -23,45 +25,56 @@ contract TokenLockerFactory is Ownable {
         uint256 withdrawTime;
     }
 
+    event LockerCreated(
+        uint256 lockerId,
+        address indexed lockerAddress,
+        address tokenAddress
+    );
 
-    event LockerCreated(uint256 lockerId, address indexed lockerAddress, address tokenAddress);
-
-    constructor( 
-    ){
-
+    constructor(uint256 _fee, address payable _feeCollector) {
+        fee = _fee;
+        feeCollector = _feeCollector;
     }
 
     function createLocker(
         ERC20 _tokenAddress,
         string memory _name,
-        uint256 _lockAmount, 
-        address _withdrawer, 
+        uint256 _lockAmount,
+        address _withdrawer,
         uint256 _withdrawTime
-        ) payable public returns(address){
-            
+    ) public payable returns (address) {
         require(msg.value == fee);
 
-        TokenLocker tokenLocker = new TokenLocker(_tokenAddress,_name, _withdrawer, _withdrawTime);
+        TokenLocker tokenLocker = new TokenLocker(
+            _tokenAddress,
+            _name,
+            _withdrawer,
+            _withdrawTime
+        );
         tokenLocker.transferOwnership(msg.sender);
 
         _tokenAddress.safeTransferFrom(
-                msg.sender,
-                address(tokenLocker),
-                _lockAmount
-            );
+            msg.sender,
+            address(tokenLocker),
+            _lockAmount
+        );
 
-        emit LockerCreated(lockerCount, address(tokenLocker), address(_tokenAddress));
+        emit LockerCreated(
+            lockerCount,
+            address(tokenLocker),
+            address(_tokenAddress)
+        );
         lockerCount++;
+        feeCollector.transfer(fee);
         return address(tokenLocker);
-
     }
 
-    function withdrawFee() public onlyOwner{
-        (bool success, ) = msg.sender.call{value: address(this).balance}("");
-        require(success, "Transfer failed.");
-    }
+    // function withdrawFee() public onlyOwner {
+    //     (bool success, ) = msg.sender.call{value: address(this).balance}("");
+    //     require(success, "Transfer failed.");
+    // }
 
-    function setFee(uint256 amount) public onlyOwner{
+    function setFee(uint256 amount) public onlyOwner {
         fee = amount;
     }
 }

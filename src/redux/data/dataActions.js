@@ -27,10 +27,12 @@ export const fetchData = (account) => {
     try {
       let idoFactoryAddress = await store.getState().blockchain.IDOFactory
         ._address;
+        
       let EBTCamount = await store
         .getState()
         .blockchain.EBTC.methods.balanceOf(account)
         .call();
+        
       let EBTCApproveToFactory = await store
         .getState()
         .blockchain.EBTC.methods.allowance(account, idoFactoryAddress)

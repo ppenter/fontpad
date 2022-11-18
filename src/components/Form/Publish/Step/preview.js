@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-import { create } from "ipfs-http-client";
+import {create} from "ipfs-http-client";
 import React, { useEffect, useState } from "react";
 import { FaImage } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,12 +14,21 @@ import ReadMore from "../../readMore";
 const key = process.env.REACT_APP_PINATA_KEY;
 const secret = process.env.REACT_APP_PINATA_SECRET;
 const axios = require("axios");
-const ipfs = create({
-  host: "ipfs.infura.io",
-  port: 5001,
-  protocol: "https",
-});
+const projectId = '2Hhv7VgApLAFt3x6VaKAkoOSwDR';   // <---------- your Infura Project ID
 
+const projectSecret = 'f3ec02a5ebfae6488217ea4e22a8cdfd';  // <---------- your Infura Secret
+// (for security concerns, consider saving these values in .env files)
+
+const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
+
+const ipfs = create({
+    host: 'ipfs.infura.io',
+    port: 5001,
+    protocol: 'https',
+    headers: {
+        authorization: auth,
+    },
+});
 export default function Preview() {
   const context = useStoreContext();
   const token = context.tokenInformation[0];
