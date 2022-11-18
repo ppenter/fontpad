@@ -7,6 +7,7 @@ import BigNumber from "bignumber.js";
 import React, { useEffect, useState } from "react";
 import { Badge } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import ERC20 from "../../contracts/ERC20.json";
 import { fetchData } from "../../redux/data/dataActions";
 import * as s from "../../styles/global";
@@ -31,6 +32,8 @@ const LockTokenForm = (props) => {
   const [tokenSymbol, setTokenSymbol] = useState("");
   const [decimals, setDecimals] = useState(-1);
   const [withdrawer, setWithdrawer] = useState("");
+
+  const navigate = useNavigate()
   const [withdrawTime, setWithdrawTime] = useState(
     parseInt(Date.now() / 1000 + 60)
   );
@@ -67,7 +70,7 @@ const LockTokenForm = (props) => {
 
   useEffect(async () => {
     const lockerFactory = blockchain.LockerFactory;
-    let lockerFee = await lockerFactory.methods.fee().call();
+    let lockerFee = await lockerFactory.methods?.fee().call();
     setFee(lockerFee);
   }, []);
 
@@ -173,6 +176,7 @@ const LockTokenForm = (props) => {
       .then((receipt) => {
         setLoading(false);
         console.log(receipt);
+        navigate('/account')
         dispatch(fetchData(blockchain.account));
       });
   };
